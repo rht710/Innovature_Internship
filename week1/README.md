@@ -4,7 +4,7 @@
 
 # \## 📌 Project Overview
 
-# This project is a responsive personal portfolio website built as part of \*\*Week 1 of the Internship Program\*\*.  
+# This project is a responsive personal portfolio website built as part of \*\*Week 1 of the Internship Program\*\*.
 
 # The website showcases personal projects and provides a simple way to get in touch through a contact form.
 
@@ -40,11 +40,11 @@
 
 # \## 🛠️ Technologies Used
 
-# \- \*\*HTML5\*\* – Page structure and semantic elements  
+# \- \*\*HTML5\*\* – Page structure and semantic elements
 
-# \- \*\*CSS3\*\* – Styling, layout, and responsive design  
+# \- \*\*CSS3\*\* – Styling, layout, and responsive design
 
-# \- \*\*JavaScript\*\* – Form validation and basic interactivity  
+# \- \*\*JavaScript\*\* – Form validation and basic interactivity
 
 # 
 
@@ -58,7 +58,7 @@
 
 # \- Navigation bar with links to Home, Projects, and Contact pages
 
-# \- Projects page showcasing \*\*3 projects\*\* with images and descriptions
+# \- Projects page showcasing \*\*3 projects\*\* with descriptions
 
 # \- Contact form with \*\*JavaScript validation\*\* (required fields \& email format)
 
@@ -107,8 +107,4 @@
 ### │   └── script.js
 
 ### └── images/
-
-
-
-
 
