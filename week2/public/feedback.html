@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback List</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: #f5f5f5;
+    }
+    h1 { color: #333; margin-bottom: 0.5rem; }
+    p.sub { color: #666; margin-bottom: 1.5rem; }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .list {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .item {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #eee;
+    }
+    .item:last-child { border-bottom: none; }
+    .item .name { font-weight: 600; color: #333; }
+    .item .email { font-size: 0.9rem; color: #666; margin-top: 0.2rem; }
+    .item .message { margin-top: 0.5rem; color: #444; white-space: pre-wrap; word-break: break-word; }
+    .item .date { font-size: 0.8rem; color: #999; margin-top: 0.5rem; }
+    .empty { padding: 2rem; text-align: center; color: #666; }
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .pagination a, .pagination span {
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      background: #fff;
+      border: 1px solid #ddd;
+      color: #333;
+      font-size: 0.95rem;
+    }
+    .pagination a:hover { background: #f0f0f0; border-color: #2563eb; color: #2563eb; }
+    .pagination .current { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .loading, .error { text-align: center; padding: 2rem; color: #666; }
+    .error { color: #c00; }
+  </style>
+</head>
+<body>
+  <h1>Feedback List</h1>
+  <p class="sub">All submitted feedback from MySQL. Data is sanitized to prevent XSS.</p>
+  <p><a href="/">← Back to feedback form</a></p>
+
+  <div id="content">
+    <div class="loading">Loading...</div>
+  </div>
+
+  <div id="pagination" class="pagination"></div>
+
+  <script>
+    const content = document.getElementById('content');
+    const paginationEl = document.getElementById('pagination');
+
+    function getQueryParam(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    function setPage(page) {
+      const url = new URL(window.location);
+      url.searchParams.set('page', page);
+      window.location.href = url.toString();
+    }
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleString();
+    }
+
+    function escapeHtml(text) {
+      if (typeof text !== 'string') return '';
+      var div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function loadFeedback() {
+      const page = Math.max(1, parseInt(getQueryParam('page'), 10) || 1);
+      const limit = 10;
+
+      try {
+        const res = await fetch('/api/feedback?page=' + page + '&limit=' + limit);
+        const data = await res.json();
+
+        if (!data.success) {
+          content.innerHTML = '<div class="error">' + escapeHtml(data.message || 'Failed to load feedback.') + '</div>';
+          return;
+        }
+
+        const items = data.data || [];
+        const pagination = data.pagination || { page: 1, totalPages: 1, total: 0 };
+
+        if (items.length === 0) {
+          content.innerHTML = '<div class="list"><div class="empty">No feedback yet. <a href="/">Submit the first one</a>.</div></div>';
+          paginationEl.innerHTML = '';
+          return;
+        }
+
+        content.innerHTML =
+          '<div class="list">' +
+          items.map(function (item) {
+            return (
+              '<div class="item">' +
+              '<div class="name">' + escapeHtml(item.name) + '</div>' +
+              '<div class="email">' + escapeHtml(item.email) + '</div>' +
+              '<div class="message">' + escapeHtml(item.message) + '</div>' +
+              '<div class="date">' + formatDate(item.created_at) + '</div>' +
+              '</div>'
+            );
+          }).join('') +
+          '</div>';
+
+        var paginationHtml = '';
+        if (pagination.totalPages > 1) {
+          if (pagination.page > 1) {
+            paginationHtml += '<a href="#" data-page="' + (pagination.page - 1) + '">Previous</a>';
+          }
+          for (var p = 1; p <= pagination.totalPages; p++) {
+            if (p === pagination.page) {
+              paginationHtml += '<span class="current">' + p + '</span>';
+            } else {
+              paginationHtml += '<a href="#" data-page="' + p + '">' + p + '</a>';
+            }
+          }
+          if (pagination.page < pagination.totalPages) {
+            paginationHtml += '<a href="#" data-page="' + (pagination.page + 1) + '">Next</a>';
+          }
+        }
+        paginationEl.innerHTML = paginationHtml;
+
+        paginationEl.querySelectorAll('a[data-page]').forEach(function (a) {
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            setPage(parseInt(a.getAttribute('data-page'), 10));
+          });
+        });
+      } catch (err) {
+        content.innerHTML = '<div class="error">Network error. Please try again.</div>';
+        paginationEl.innerHTML = '';
+      }
+    }
+
+    loadFeedback();
+  </script>
+</body>
+</html>

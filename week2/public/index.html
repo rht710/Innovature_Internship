@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback Form</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      max-width: 480px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: #f5f5f5;
+    }
+    h1 { color: #333; margin-bottom: 0.5rem; }
+    p.sub { color: #666; margin-bottom: 1.5rem; }
+    form {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    label { display: block; margin-bottom: 0.25rem; font-weight: 600; color: #444; }
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    .error { color: #c00; font-size: 0.9rem; margin-top: -0.5rem; margin-bottom: 0.5rem; }
+    .success { color: #0a0; margin-top: 1rem; }
+    button {
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover { background: #1d4ed8; }
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .links { margin-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Feedback Form</h1>
+  <p class="sub">Share your feedback with us. All fields are required. Stored in MySQL.</p>
+
+  <form id="feedbackForm">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" required maxlength="100" placeholder="Your name">
+    <div id="nameError" class="error" aria-live="polite"></div>
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required maxlength="255" placeholder="you@example.com">
+    <div id="emailError" class="error" aria-live="polite"></div>
+
+    <label for="message">Message</label>
+    <textarea id="message" name="message" required maxlength="5000" placeholder="Your message..."></textarea>
+    <div id="messageError" class="error" aria-live="polite"></div>
+
+    <button type="submit">Submit Feedback</button>
+    <div id="formMessage"></div>
+  </form>
+
+  <p class="links">
+    <a href="/feedback">View all feedback →</a>
+  </p>
+
+  <script>
+    const form = document.getElementById('feedbackForm');
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const messageError = document.getElementById('messageError');
+    const formMessage = document.getElementById('formMessage');
+
+    function clearErrors() {
+      nameError.textContent = '';
+      emailError.textContent = '';
+      messageError.textContent = '';
+      formMessage.textContent = '';
+      formMessage.className = '';
+    }
+
+    function showErrors(errors) {
+      clearErrors();
+      (errors || []).forEach(function (e) {
+        const el = document.getElementById(e.path + 'Error');
+        if (el) el.textContent = e.msg;
+      });
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      clearErrors();
+
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+      const message = form.message.value.trim();
+
+      if (!name) { nameError.textContent = 'Name is required.'; return; }
+      if (!email) { emailError.textContent = 'Email is required.'; return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        emailError.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      if (!message) { messageError.textContent = 'Message is required.'; return; }
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          formMessage.textContent = 'Thank you! Your feedback has been submitted.';
+          formMessage.className = 'success';
+          form.reset();
+        } else {
+          if (data.errors && data.errors.length) {
+            showErrors(data.errors.map(function (x) {
+              return { path: x.path || x.param, msg: x.msg };
+            }));
+          } else {
+            formMessage.textContent = data.message || 'Something went wrong.';
+            formMessage.className = 'error';
+          }
+        }
+      } catch (err) {
+        formMessage.textContent = 'Network error. Please try again.';
+        formMessage.className = 'error';
+      }
+    });
+  </script>
+</body>
+</html>

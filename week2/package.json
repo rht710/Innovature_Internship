@@ -1,0 +1,18 @@
+{
+  "name": "week2-feedback-form",
+  "version": "1.0.0",
+  "description": "Feedback form with MySQL storage, validation & sanitization",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["feedback", "mysql", "validation", "xss", "sql-injection"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "mysql2": "^3.6.5"
+  }
+}
