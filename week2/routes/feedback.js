@@ -81,17 +81,17 @@ router.get(
     const offsetNum = Number(offset);
 
     try {
-      // LIMIT/OFFSET must be literals (MySQL prepared statements don't accept bound params for them)
       const [rows] = await pool.query(
-        `SELECT id, name, email, message, created_at FROM feedback ORDER BY created_at DESC LIMIT ${limitNum} OFFSET ${offsetNum}`
+        'SELECT id, name, email, message, created_at FROM feedback ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        [limitNum, offsetNum]
       );
       const [[{ count }]] = await pool.execute('SELECT COUNT(*) AS count FROM feedback');
 
       const sanitized = rows.map((row) => ({
         id: row.id,
-        name: escapeHtml(row.name),
-        email: escapeHtml(row.email),
-        message: escapeHtml(row.message),
+        name: row.name,
+        email: row.email,
+        message: row.message,
         created_at: row.created_at,
       }));
 
