@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback Form</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(160deg, #f0f4ff 0%, #e8eeff 40%, #fdf8f3 100%);
+      color: #334155;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .page {
+      width: 100%;
+      max-width: 440px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #1e293b;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      font-size: 0.95rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 4px 24px rgba(99, 102, 241, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    form label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #475569;
+      margin-bottom: 0.5rem;
+    }
+    form input,
+    form textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.25rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      background: #f8fafc;
+      color: #1e293b;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    form input::placeholder,
+    form textarea::placeholder {
+      color: #94a3b8;
+    }
+    form input:focus,
+    form textarea:focus {
+      outline: none;
+      border-color: #818cf8;
+      box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+      background: #fff;
+    }
+    form textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .field-error {
+      font-size: 0.8125rem;
+      color: #dc2626;
+      margin-bottom: 1rem;
+      min-height: 1.25rem;
+    }
+    .form-msg {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .form-msg.success {
+      background: #ecfdf5;
+      color: #059669;
+      border: 1px solid #a7f3d0;
+    }
+    .form-msg.error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    button[type="submit"] {
+      width: 100%;
+      padding: 0.875rem 1.25rem;
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      font-family: inherit;
+      color: #fff;
+      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+    button[type="submit"]:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+    }
+    button[type="submit"]:active {
+      transform: translateY(0);
+    }
+    .link-wrap {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    .link-wrap a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #4f46e5;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .link-wrap a:hover {
+      color: #4338ca;
+      background: rgba(99, 102, 241, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <h1>Feedback</h1>
+      <p>Share your thoughts. All fields are required.</p>
+    </header>
+
+    <div class="card">
+      <form id="feedbackForm">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required maxlength="100" placeholder="Your name">
+        <div id="nameError" class="field-error" aria-live="polite"></div>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required maxlength="255" placeholder="you@example.com">
+        <div id="emailError" class="field-error" aria-live="polite"></div>
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" required maxlength="5000" placeholder="Your message..."></textarea>
+        <div id="messageError" class="field-error" aria-live="polite"></div>
+
+        <button type="submit">Submit feedback</button>
+        <div id="formMessage"></div>
+      </form>
+    </div>
+
+    <p class="link-wrap">
+      <a href="/feedback">View all feedback →</a>
+    </p>
+  </div>
+
+  <script>
+    const form = document.getElementById('feedbackForm');
+    const nameError = document.getElementById('nameError');
+    const emailError = document.getElementById('emailError');
+    const messageError = document.getElementById('messageError');
+    const formMessage = document.getElementById('formMessage');
+
+    function clearErrors() {
+      nameError.textContent = '';
+      emailError.textContent = '';
+      messageError.textContent = '';
+      formMessage.textContent = '';
+      formMessage.className = '';
+    }
+
+    function showErrors(errors) {
+      clearErrors();
+      (errors || []).forEach(function (e) {
+        const el = document.getElementById(e.path + 'Error');
+        if (el) el.textContent = e.msg;
+      });
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      clearErrors();
+
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+      const message = form.message.value.trim();
+
+      if (!name) { nameError.textContent = 'Name is required.'; return; }
+      if (!email) { emailError.textContent = 'Email is required.'; return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        emailError.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      if (!message) { messageError.textContent = 'Message is required.'; return; }
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message }),
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          formMessage.textContent = 'Thank you! Your feedback has been submitted.';
+          formMessage.className = 'form-msg success';
+          form.reset();
+        } else {
+          if (data.errors && data.errors.length) {
+            showErrors(data.errors.map(function (x) {
+              return { path: x.path || x.param, msg: x.msg };
+            }));
+          } else {
+            formMessage.textContent = data.message || 'Something went wrong.';
+            formMessage.className = 'form-msg error';
+          }
+        }
+      } catch (err) {
+        formMessage.textContent = 'Network error. Please try again.';
+        formMessage.className = 'form-msg error';
+      }
+    });
+  </script>
+</body>
+</html>
