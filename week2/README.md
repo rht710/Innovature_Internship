@@ -1,5 +1,82 @@
 # Week 2 – Feedback Form (MySQL)
 
+Simple feedback form that stores submissions in **MySQL**, validates and sanitizes input, and shows a **paginated** feedback list.
+
+## What it does
+
+- Feedback form: **Name**, **Email**, **Message**
+- Stores entries in **MySQL** (`feedback_db.feedback` table)
+- Dedicated feedback page with **pagination**
+- Protection against **SQL injection** (parameterized queries) and **XSS** (HTML escaping)
+
+## Quick setup
+
+### 1. MySQL
+
+Create the database and table (any MySQL client or terminal):
+
+```sql
+CREATE DATABASE IF NOT EXISTS feedback_db;
+USE feedback_db;
+
+CREATE TABLE IF NOT EXISTS feedback (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### 2. Environment file
+
+From the project root:
+
+```bash
+copy .env.example .env
+```
+
+Edit `.env` and set your MySQL details:
+
+```text
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+DB_NAME=feedback_db
+PORT=3000
+```
+
+### 3. Install & run
+
+```bash
+npm install
+npm start
+```
+
+Then open:
+
+- Form: `http://localhost:3000`
+- Feedback list (with pagination): `http://localhost:3000/feedback`
+
+## How to quickly test
+
+1. Submit a few feedbacks on the **form page** (all fields required).
+2. Go to the **feedback page** – you should see:
+   - Your entries, newest first
+   - Pagination when there are more than 10 items
+3. Try leaving fields empty or using an invalid email to see validation errors.
+
+## Files to know
+
+- `db/schema.sql` – MySQL schema (database + table)
+- `db/connection.js` – MySQL connection pool
+- `routes/feedback.js` – POST submit, GET list (validation, sanitization, pagination)
+- `public/index.html` – Feedback form UI
+- `public/feedback.html` – Feedback list UI with pagination
+- `server.js` – Express server wiring everything together
+
+# Week 2 – Feedback Form (MySQL)
+
 Feedback form that stores submissions in **MySQL**, with validation, sanitization (XSS/SQL injection prevention), and a feedback list page with **pagination**.
 
 ## Requirements covered

@@ -75,13 +75,15 @@ router.get(
     }
 
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 10));
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 5));
     const offset = (page - 1) * limit;
+    const limitNum = Number(limit);
+    const offsetNum = Number(offset);
 
     try {
-      const [rows] = await pool.execute(
-        'SELECT id, name, email, message, created_at FROM feedback ORDER BY created_at DESC LIMIT ? OFFSET ?',
-        [limit, offset]
+      // LIMIT/OFFSET must be literals (MySQL prepared statements don't accept bound params for them)
+      const [rows] = await pool.query(
+        `SELECT id, name, email, message, created_at FROM feedback ORDER BY created_at DESC LIMIT ${limitNum} OFFSET ${offsetNum}`
       );
       const [[{ count }]] = await pool.execute('SELECT COUNT(*) AS count FROM feedback');
 
@@ -104,7 +106,7 @@ router.get(
         },
       });
     } catch (err) {
-      console.error('DB error:', err);
+      console.error('DB error (GET):', err.message);
       res.status(500).json({ success: false, message: 'Failed to load feedback.' });
     }
   }
