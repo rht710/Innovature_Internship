@@ -30,7 +30,8 @@ const submitValidation = [
     .notEmpty().withMessage('Email is required')
     .isEmail().withMessage('Invalid email format')
     .isLength({ max: 255 }).withMessage('Email must be at most 255 characters')
-    .normalizeEmail(),
+    .normalizeEmail()
+    .escape(),
   body('message')
     .trim()
     .notEmpty().withMessage('Message is required')
