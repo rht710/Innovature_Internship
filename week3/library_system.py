@@ -108,7 +108,10 @@ def add_member():
     members.append(member.to_list())
     save_csv(MEMBERS_FILE, ["id", "name", "email"], members)
 
-    print("Member added successfully!")
+    print("\nMember added successfully!")
+    print("Member ID:", member_id)
+    print("Name:", name)
+
 
 def view_books():
     books = load_csv(BOOKS_FILE)
@@ -174,10 +177,12 @@ def return_book():
     books = load_csv(BOOKS_FILE)
     transactions = load_csv(TRANSACTIONS_FILE)
 
-    trans_id = input("Enter transaction ID: ")
+    member_id = input("Enter member ID: ")
+    book_id = input("Enter book ID: ")
 
     for t in transactions:
-        if t[0] == trans_id and t[5] == "":
+        # Check: same member, same book, not yet returned
+        if t[1] == book_id and t[2] == member_id and t[5] == "":
             return_date = datetime.now().strftime(DATE_FORMAT)
             t[5] = return_date
 
@@ -185,8 +190,9 @@ def return_book():
             fee = transaction.calculate_fee()
             t[6] = str(fee)
 
+            # Increase book copies
             for book in books:
-                if book[0] == t[1]:
+                if book[0] == book_id:
                     book[4] = str(int(book[4]) + 1)
 
             save_csv(BOOKS_FILE, ["id", "title", "author", "genre", "copies"], books)
@@ -196,11 +202,11 @@ def return_book():
                 transactions
             )
 
-            print("Book returned successfully!")
+            print("\nBook returned successfully!")
             print("Late fee:", fee)
             return
 
-    print("Transaction not found or already returned.")
+    print("\nNo active borrowing found for this Member and Book.")
 
 
 def main():
