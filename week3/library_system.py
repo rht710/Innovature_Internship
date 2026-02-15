@@ -87,12 +87,16 @@ def add_book():
         print("Invalid number.")
         return
 
-    book_id = str(len(books) + 1)
+    if books:
+        max_id = max(int(book[0]) for book in books)
+        book_id = str(max_id + 1)
+    else:
+        book_id = "1"
+
     book = Book(book_id, title, author, genre, copies)
-
     books.append(book.to_list())
-    save_csv(BOOKS_FILE, ["id", "title", "author", "genre", "copies"], books)
 
+    save_csv(BOOKS_FILE, ["id", "title", "author", "genre", "copies"], books)
     print("Book added successfully!")
 
 
@@ -102,10 +106,15 @@ def add_member():
     name = input("Enter member name: ")
     email = input("Enter member email: ")
 
-    member_id = str(len(members) + 1)
-    member = Member(member_id, name, email)
+    if members:
+        max_id = max(int(member[0]) for member in members)
+        member_id = str(max_id + 1)
+    else:
+        member_id = "1"
 
+    member = Member(member_id, name, email)
     members.append(member.to_list())
+
     save_csv(MEMBERS_FILE, ["id", "name", "email"], members)
 
     print("\nMember added successfully!")
@@ -126,31 +135,46 @@ def view_books():
     for book in books:
         print(f"{book[0]} | {book[1]} | {book[2]} | {book[3]} | {book[4]}")
 
+
 def borrow_book():
     books = load_csv(BOOKS_FILE)
+    members = load_csv(MEMBERS_FILE)
     transactions = load_csv(TRANSACTIONS_FILE)
 
     member_id = input("Enter member ID: ")
     book_id = input("Enter book ID: ")
 
+    member_exists = any(m[0] == member_id for m in members)
+    if not member_exists:
+        print("Member not found.")
+        return
+
     book_found = False
     for book in books:
         if book[0] == book_id:
             book_found = True
-            if int(book[4]) > 0:
-                book[4] = str(int(book[4]) - 1)
-            else:
+            if int(book[4]) <= 0:
                 print("Book not available.")
                 return
+            break
 
     if not book_found:
         print("Book not found.")
         return
 
+    for t in transactions:
+        if t[1] == book_id and t[2] == member_id and t[5] == "":
+            print("This member already borrowed this book.")
+            return
+
     borrow_date = datetime.now().strftime(DATE_FORMAT)
     due_date = (datetime.now() + timedelta(days=7)).strftime(DATE_FORMAT)
 
-    trans_id = str(len(transactions) + 1)
+    if transactions:
+        max_id = max(int(t[0]) for t in transactions)
+        trans_id = str(max_id + 1)
+    else:
+        trans_id = "1"
 
     transactions.append([
         trans_id,
@@ -161,6 +185,10 @@ def borrow_book():
         "",
         0
     ])
+
+    for book in books:
+        if book[0] == book_id:
+            book[4] = str(int(book[4]) - 1)
 
     save_csv(BOOKS_FILE, ["id", "title", "author", "genre", "copies"], books)
     save_csv(
@@ -181,7 +209,6 @@ def return_book():
     book_id = input("Enter book ID: ")
 
     for t in transactions:
-        # Check: same member, same book, not yet returned
         if t[1] == book_id and t[2] == member_id and t[5] == "":
             return_date = datetime.now().strftime(DATE_FORMAT)
             t[5] = return_date
@@ -190,7 +217,6 @@ def return_book():
             fee = transaction.calculate_fee()
             t[6] = str(fee)
 
-            # Increase book copies
             for book in books:
                 if book[0] == book_id:
                     book[4] = str(int(book[4]) + 1)
@@ -209,6 +235,28 @@ def return_book():
     print("\nNo active borrowing found for this Member and Book.")
 
 
+def remove_book():
+    books = load_csv(BOOKS_FILE)
+    transactions = load_csv(TRANSACTIONS_FILE)
+
+    book_id = input("Enter Book ID to remove: ")
+
+    book_exists = any(book[0] == book_id for book in books)
+    if not book_exists:
+        print("Book not found.")
+        return
+
+    for t in transactions:
+        if t[1] == book_id and t[5] == "":
+            print("Cannot remove book. It is currently borrowed.")
+            return
+
+    books = [book for book in books if book[0] != book_id]
+
+    save_csv(BOOKS_FILE, ["id", "title", "author", "genre", "copies"], books)
+    print("Book removed successfully.")
+
+
 def main():
     while True:
         print("\n===== Library Menu =====")
@@ -217,7 +265,8 @@ def main():
         print("3. View Books")
         print("4. Borrow Book")
         print("5. Return Book")
-        print("6. Exit")
+        print("6. Remove Book")
+        print("7. Exit")
 
         choice = input("Enter choice: ")
 
@@ -232,6 +281,8 @@ def main():
         elif choice == "5":
             return_book()
         elif choice == "6":
+            remove_book()
+        elif choice == "7":
             print("Exiting program...")
             break
         else:
