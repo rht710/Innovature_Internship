@@ -110,6 +110,18 @@ def add_member():
 
     print("Member added successfully!")
 
+def view_books():
+    books = load_csv(BOOKS_FILE)
+
+    if not books:
+        print("No books available.")
+        return
+
+    print("\nAvailable Books:")
+    print("ID | Title | Author | Genre | Copies")
+
+    for book in books:
+        print(f"{book[0]} | {book[1]} | {book[2]} | {book[3]} | {book[4]}")
 
 def borrow_book():
     books = load_csv(BOOKS_FILE)
@@ -196,9 +208,10 @@ def main():
         print("\n===== Library Menu =====")
         print("1. Add Book")
         print("2. Add Member")
-        print("3. Borrow Book")
-        print("4. Return Book")
-        print("5. Exit")
+        print("3. View Books")
+        print("4. Borrow Book")
+        print("5. Return Book")
+        print("6. Exit")
 
         choice = input("Enter choice: ")
 
@@ -207,10 +220,12 @@ def main():
         elif choice == "2":
             add_member()
         elif choice == "3":
-            borrow_book()
+            view_books()
         elif choice == "4":
-            return_book()
+            borrow_book()
         elif choice == "5":
+            return_book()
+        elif choice == "6":
             print("Exiting program...")
             break
         else:
