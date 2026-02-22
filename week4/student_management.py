@@ -52,10 +52,27 @@ def view_students(connection):
     cursor.execute("SELECT * FROM students")
     rows = cursor.fetchall()
 
-    print("\n--- Student Records ---")
-    for row in rows:
-        print(row)
+    if not rows:
+        print("No student records found.")
+        return
 
+    print("\n" + "="*80)
+    print("{:<5} {:<15} {:<5} {:<10} {:<25} {:<20}".format(
+        "ID", "Name", "Age", "Grade", "Email", "Created At"
+    ))
+    print("="*80)
+
+    for row in rows:
+        print("{:<5} {:<15} {:<5} {:<10} {:<25} {:<20}".format(
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5].strftime("%Y-%m-%d %H:%M")
+        ))
+
+    print("="*80)
 def update_student(connection):
     try:
         cursor = connection.cursor()
@@ -80,7 +97,10 @@ def delete_student(connection):
         cursor.execute(query, (student_id,))
         connection.commit()
 
-        print("Record deleted")
+        if cursor.rowcount == 0:
+            print("No record found with that ID.")
+        else:
+            print("Record deleted successfully!")
 
     except Exception as e:
         print("Error:", e)
@@ -105,14 +125,32 @@ def search_student(connection):
         grade = input("Enter Grade: ")
         cursor.execute("SELECT * FROM students WHERE grade=%s", (grade,))
     else:
-        print("Invalid choice")
+        print("Invalid choice.")
         return
 
     results = cursor.fetchall()
 
-    print("\n--- Search Results ---")
+    if not results:
+        print("⚠ No matching records found.")
+        return
+
+    print("\n" + "="*80)
+    print("{:<5} {:<15} {:<5} {:<10} {:<25} {:<20}".format(
+        "ID", "Name", "Age", "Grade", "Email", "Created At"
+    ))
+    print("="*80)
+
     for row in results:
-        print(row)
+        print("{:<5} {:<15} {:<5} {:<10} {:<25} {:<20}".format(
+            row[0],
+            row[1],
+            row[2],
+            row[3],
+            row[4],
+            row[5].strftime("%Y-%m-%d %H:%M")
+        ))
+
+    print("="*80)
 
 
 def export_to_csv(connection):
