@@ -119,18 +119,27 @@ class LoginView(APIView):
         profile, created = UserProfile.objects.get_or_create(user=user)
         
         if profile.is_locked:
-            return Response({"error": "Account is locked due to too many failed attempts."}, status=403)
+            return Response({"error": "Account is permanently locked. Please contact admin."}, status=403)
+            
+        if profile.lockout_until and timezone.now() < profile.lockout_until:
+            remaining = (profile.lockout_until - timezone.now()).total_seconds()
+            minutes = int(remaining // 60)
+            seconds = int(remaining % 60)
+            return Response({"error": f"Account is temporarily locked. Try again in {minutes}m {seconds}s."}, status=403)
             
         user_auth = authenticate(username=username, password=password)
         if user_auth is None:
             profile.failed_login_attempts += 1
             if profile.failed_login_attempts >= 5:
-                profile.is_locked = True
+                # Set temporary lockout for 5 minutes
+                profile.lockout_until = timezone.now() + timezone.timedelta(minutes=5)
             profile.save()
             return Response({"error": f"Invalid credentials. Failed attempts: {profile.failed_login_attempts}"}, status=400)
             
         # Successful credentials
         profile.failed_login_attempts = 0
+        profile.failed_otp_attempts = 0
+        profile.lockout_until = None
         
         # Generate OTP
         otp_code = str(random.randint(100000, 999999))
@@ -167,10 +176,20 @@ class VerifyOTPView(APIView):
             return Response({"error": "Invalid user"}, status=400)
             
         if profile.is_locked:
-            return Response({"error": "Account is locked."}, status=403)
+            return Response({"error": "Account is permanently locked."}, status=403)
+
+        if profile.lockout_until and timezone.now() < profile.lockout_until:
+            remaining = (profile.lockout_until - timezone.now()).total_seconds()
+            minutes = int(remaining // 60)
+            seconds = int(remaining % 60)
+            return Response({"error": f"Account is temporarily locked. Try again in {minutes}m {seconds}s."}, status=403)
             
         if profile.otp != otp:
-            return Response({"error": "Invalid OTP"}, status=400)
+            profile.failed_otp_attempts += 1
+            if profile.failed_otp_attempts >= 5:
+                profile.lockout_until = timezone.now() + timezone.timedelta(minutes=5)
+            profile.save()
+            return Response({"error": f"Invalid OTP. Failed attempts: {profile.failed_otp_attempts}"}, status=400)
             
         if profile.otp_created_at:
             time_difference = timezone.now() - profile.otp_created_at
@@ -180,6 +199,9 @@ class VerifyOTPView(APIView):
         # OTP is valid
         profile.otp = None
         profile.otp_created_at = None
+        profile.failed_otp_attempts = 0
+        profile.failed_login_attempts = 0
+        profile.lockout_until = None
         profile.save()
         
         refresh = RefreshToken.for_user(user)

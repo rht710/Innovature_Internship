@@ -13,10 +13,10 @@ We implemented **Two-Factor Authentication (Email OTP)**, a strict **Account Loc
 - Submitting valid credentials to `/login/` generates a secure 6-digit OTP code which is sent to the user's registered email address using Django's SMTP backend.
 - The OTP is verified at the `/verify-otp/` endpoint. If valid and submitted within a 5-minute expiration window, the user receives their JWT `access` and `refresh` tokens.
 
-### 2. Account Lockout Mechanism
-- Brute-force protection was added directly to the login view.
-- If a user submits an incorrect password **5 times in a row**, their profile is flagged as `is_locked = True`.
-- Any subsequent login attempts are instantly rejected with a `403 Forbidden`, regardless of whether the correct password is provided later.
+### 2. Account Lockout Mechanism (Upgraded)
+- **Temporary Lockout**: If a user submits an incorrect password OR an incorrect OTP **5 times**, their account is temporarily locked for **5 minutes**.
+- **Permanent Lockout**: Accounts can also be flagged as `is_locked = True` for permanent administrative suspension.
+- **Dynamic Feedback**: Any subsequent login or OTP attempts during the lockout period are rejected with a `403 Forbidden` response that includes a countdown of the remaining lockout time (e.g., "Try again in 4m 30s").
 
 ### 3. Role-Based Access Middleware
 - A custom `RoleBasedAccessMiddleware` was built to protect sensitive API routes without polluting the views.
