@@ -8,7 +8,7 @@ from rest_framework.authtoken.models import Token
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
-        fields = ['id', 'image', 'thumbnail', 'created_at']
+        fields = ['id', 'product', 'image', 'thumbnail', 'created_at']
 
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)

@@ -41,6 +41,35 @@ class CartViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class CartItemViewSet(viewsets.ModelViewSet):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Users only see items in their own cart
+        return CartItem.objects.filter(cart__user=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        cart, created = Cart.objects.get_or_create(user=self.request.user)
+        product = serializer.validated_data.get('product')
+        quantity = serializer.validated_data.get('quantity', 1)
+
+        # Update quantity if product already exists in cart, otherwise create it
+        item = CartItem.objects.filter(cart=cart, product=product).first()
+        if item:
+            item.quantity += quantity
+            item.save()
+        else:
+            item = CartItem.objects.create(cart=cart, product=product, quantity=quantity)
+            
+        # Use serializer to return response data
+        response_serializer = self.get_serializer(item)
+        return Response(response_serializer.data, status=201)
+
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 

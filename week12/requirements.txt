@@ -1,0 +1,16 @@
+Django>=5.0
+djangorestframework
+django-filter
+pillow
+python-dotenv
+dj-database-url
+psycopg2-binary
+whitenoise
+gunicorn
+boto3
+django-storages
+pytest
+pytest-django
+pytest-cov
+responses
+requests
