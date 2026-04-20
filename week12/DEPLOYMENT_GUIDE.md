@@ -39,10 +39,19 @@ In the Render Free Tier, the **Shell** tab is unavailable. Your database will no
 3. Once the logs show "Listening at: http://0.0.0.0:10000", your app is ready.
 4. (Optional) If you need to create a superuser, you can temporarily change your Start Command to `python manage.py createsuperuser --noinput` (using environment variables for username/email/password) or use a custom management command/seed script.
 
-## 5. Verify
+## 5. Verify Successful Deployment
 1. Visit your Render URL (found at the top of the service page).
 2. Append `/api/products/` to your URL.
-3. You should see an empty list (or your API response).
+3. You should see a JSON response with your seeded products.
+
+### 📸 Proof of Deployment
+Below are the screenshots of the live API working on Render:
+
+![Product List Live](screenshots/Screenshot%202026-04-20%20111728.png)
+*Figure 1: Live API response showing the product list.*
+
+![Admin Dashboard Live](screenshots/Screenshot%202026-04-20%20111740.png)
+*Figure 2: Django Admin dashboard on the production server.*
 
 ---
 
