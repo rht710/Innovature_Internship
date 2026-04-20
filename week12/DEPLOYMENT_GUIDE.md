@@ -23,7 +23,7 @@ Follow these steps to deploy your E-commerce API to the cloud.
 6. **Branch**: `main` (or your work branch).
 7. **Root Directory**: `week12` (IMPORTANT: Point this to the week12 folder).
 8. **Build Command**: `pip install -r requirements.txt && python manage.py collectstatic --noinput`
-9. **Start Command**: `gunicorn ecommerce_backend.wsgi`
+9. **Start Command**: `python manage.py migrate && gunicorn ecommerce_backend.wsgi` (NOTE: This runs migrations automatically on every deploy, which is required for the Free Tier since the Shell is unavailable).
 10. Click **Advanced** and add these Environment Variables:
     - `SECRET_KEY`: (Generate a random string)
     - `DEBUG`: `False`
@@ -31,11 +31,13 @@ Follow these steps to deploy your E-commerce API to the cloud.
     - `ALLOWED_HOSTS`: `*.onrender.com`
 11. Click **Create Web Service**.
 
-## 4. Run Migrations
-Since we are using a fresh PostgreSQL database, you need to run migrations.
-1. Go to the **Shell** tab of your Web Service on Render.
-2. Run: `python manage.py migrate`
-3. (Optional) Create a superuser: `python manage.py createsuperuser`
+## 4. Database Initialization
+In the Render Free Tier, the **Shell** tab is unavailable. Your database will now be initialized automatically during startup because of the updated Start Command.
+
+1. Check the **Logs** tab in Render.
+2. You should see "Operations to perform: Apply all migrations" followed by a list of successful migrations.
+3. Once the logs show "Listening at: http://0.0.0.0:10000", your app is ready.
+4. (Optional) If you need to create a superuser, you can temporarily change your Start Command to `python manage.py createsuperuser --noinput` (using environment variables for username/email/password) or use a custom management command/seed script.
 
 ## 5. Verify
 1. Visit your Render URL (found at the top of the service page).
