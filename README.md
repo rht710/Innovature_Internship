@@ -1,6 +1,6 @@
-# Innovature Internship: E-commerce Backend Project
+# Innovature Internship: Full Stack E-commerce Project
 
-This repository contains the weekly progress and final deployment of the E-commerce Backend API developed during the **Innovature Internship to Hire Excellence Program (I2HEP)**.
+This repository contains the weekly progress of the E-commerce Backend API and Frontend React applications developed during the **Innovature Internship to Hire Excellence Program (I2HEP)**.
 
 ## 📁 Project Structure
 
@@ -13,6 +13,8 @@ This repository is organized by weeks, covering the journey from basic Django se
 ---
 
 ### Previous Milestones
+*   **Week 14**: React Forms, Validation & State Management.
+*   **Week 13**: React Basics & Dashboard UI.
 *   **Week 11**: Database Optimization & Advanced Querying.
 *   **Week 10**: Media Handling, Thumbnails, and AWS S3 Integration.
 *   **Week 9**: Shopping Cart Logic & Authentication.
@@ -27,7 +29,8 @@ This repository is organized by weeks, covering the journey from basic Django se
 ---
 
 ## 🛠 Tech Stack
-*   **Language**: Python 3.x
+*   **Frontend**: React 18, Vite, Vanilla CSS
+*   **Backend Language**: Python 3.x
 *   **Framework**: Django & Django Rest Framework
 *   **Database**: PostgreSQL (Production), SQLite (Development)
 *   **Hosting**: Render
