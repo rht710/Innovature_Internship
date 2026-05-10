@@ -12,6 +12,9 @@ This repository is organized by weeks, covering the journey from basic Django se
 
 ---
 
+### [Week 15: Routing (React Router v6)](./week15/) 🚀
+*   **Key Features**: React Router v6, Dynamic Routes, Nested Layouts, Category Filtering, and URL Pagination.
+
 ### Previous Milestones
 *   **Week 14**: React Forms, Validation & State Management.
 *   **Week 13**: React Basics & Dashboard UI.
