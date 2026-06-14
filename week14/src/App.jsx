@@ -192,6 +192,7 @@ function App() {
             
             {currentStep < 3 ? (
               <button 
+                key="next-btn"
                 type="button" 
                 className="btn btn-primary" 
                 onClick={nextStep}
@@ -200,6 +201,7 @@ function App() {
               </button>
             ) : (
               <button 
+                key="submit-btn"
                 type="submit" 
                 className="btn btn-primary"
               >

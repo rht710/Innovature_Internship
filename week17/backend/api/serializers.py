@@ -29,7 +29,16 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ['id', 'category', 'category_name', 'name', 'slug', 'description', 'price', 'stock', 'image_url', 'images', 'price_in_usd', 'created_at']
 
     def get_price_in_usd(self, obj):
-        rate = get_exchange_rate("INR", "USD")
+        request = self.context.get('request')
+        if request:
+            if not hasattr(request, '_exchange_rate_cache'):
+                request._exchange_rate_cache = {}
+            cache_key = ("INR", "USD")
+            if cache_key not in request._exchange_rate_cache:
+                request._exchange_rate_cache[cache_key] = get_exchange_rate("INR", "USD")
+            rate = request._exchange_rate_cache[cache_key]
+        else:
+            rate = get_exchange_rate("INR", "USD")
         return round(float(obj.price) * rate, 2)
 
 class CategorySerializer(serializers.ModelSerializer):
