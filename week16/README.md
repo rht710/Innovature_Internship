@@ -21,7 +21,7 @@ The core objective was to master asynchronous operations in React, handle differ
 ### 3. Advanced UX / Performance
 - **Loading States**: Integrated clean loading spinners (`lucide-react`) and animated skeletons to provide user feedback during network requests.
 - **Error Handling**: Graceful error boundaries and alert messages display if the API call fails or if a post is not found.
-- **Infinite Scroll (Bonus)**: Implemented an `IntersectionObserver` to automatically fetch and append the next batch of posts as the user scrolls to the bottom of the page, eliminating the need for manual pagination clicks.
+- **Infinite Scroll**: Implemented an `IntersectionObserver` to automatically fetch and append the next batch of posts as the user scrolls to the bottom of the page, eliminating the need for manual pagination clicks.
 
 ---
 

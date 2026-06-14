@@ -186,7 +186,7 @@ export default function BlogList() {
             }`}
           >
             <Infinity className="w-3.5 h-3.5" />
-            Infinite Scroll (Bonus)
+            Infinite Scroll
           </button>
         </div>
       </div>
@@ -219,6 +219,9 @@ export default function BlogList() {
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
         {posts.map((post, index) => {
           const isLastPost = posts.length === index + 1;
+          const displayTag = currentCategory !== "All" && post.tags.some(t => t.toLowerCase() === currentCategory.toLowerCase())
+            ? currentCategory
+            : (post.tags[0] || "General");
           return (
             <article 
               ref={viewMode === "infinite" && isLastPost ? lastPostElementRef : null}
@@ -234,7 +237,7 @@ export default function BlogList() {
                 />
                 <div className="absolute top-4 left-4">
                   <span className="bg-white/90 backdrop-blur-sm text-indigo-700 px-3 py-1 rounded-full text-xs font-bold shadow-sm capitalize">
-                    {post.tags[0] || "General"}
+                    {displayTag}
                   </span>
                 </div>
               </div>
