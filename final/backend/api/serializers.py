@@ -6,7 +6,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import (
     Course, Module, Lesson, Quiz, Question, AnswerOption,
-    Enrollment, LessonProgress, QAMessage, PaymentTransaction,
+    Enrollment, LessonProgress, QuizProgress, QAMessage, PaymentTransaction,
     CourseReview, Notification, Badge, UserBadge, Project, ProjectSubmission
 )
 
@@ -177,6 +177,13 @@ class LessonProgressSerializer(serializers.ModelSerializer):
     class Meta:
         model = LessonProgress
         fields = ('id', 'enrollment', 'lesson', 'is_completed', 'completed_at')
+
+class QuizProgressSerializer(serializers.ModelSerializer):
+    quiz_title = serializers.ReadOnlyField(source='quiz.title')
+
+    class Meta:
+        model = QuizProgress
+        fields = ('id', 'enrollment', 'quiz', 'quiz_title', 'passed', 'score', 'completed_at')
 
 class EnrollmentSerializer(serializers.ModelSerializer):
     course_title = serializers.ReadOnlyField(source='course.title')

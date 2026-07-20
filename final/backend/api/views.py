@@ -20,13 +20,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import (
     Course, Module, Lesson, Quiz, Question, AnswerOption,
-    Enrollment, LessonProgress, QAMessage, PaymentTransaction,
+    Enrollment, LessonProgress, QuizProgress, QAMessage, PaymentTransaction,
     CourseReview, Notification, Badge, UserBadge, Project, ProjectSubmission
 )
 from .serializers import (
     UserSerializer, CourseSerializer, ModuleSerializer, LessonSerializer,
     QuizSerializer, QuestionSerializer, AnswerOptionSerializer,
-    EnrollmentSerializer, LessonProgressSerializer, QAMessageSerializer,
+    EnrollmentSerializer, LessonProgressSerializer, QuizProgressSerializer, QAMessageSerializer,
     PaymentTransactionSerializer, CourseReviewSerializer, NotificationSerializer,
     ProjectSerializer, ProjectSubmissionSerializer, BadgeSerializer, UserBadgeSerializer
 )
@@ -871,10 +871,46 @@ class QuizViewSet(viewsets.ModelViewSet):
                 if qm_badge:
                     UserBadge.objects.get_or_create(user=user, badge=qm_badge)
 
-        # Auto-complete the lesson progress if user passed
+        # Track quiz progress and update course progress only when quiz is passed.
         enrollment = Enrollment.objects.filter(student=request.user, course=quiz.module.course).first()
-        if enrollment and passed:
-            pass
+        if enrollment:
+            quiz_progress, _ = QuizProgress.objects.update_or_create(
+                enrollment=enrollment,
+                quiz=quiz,
+                defaults={
+                    'passed': passed,
+                    'score': score_percentage
+                }
+            )
+
+            if passed:
+                completed_lessons = LessonProgress.objects.filter(enrollment=enrollment, is_completed=True).count()
+                total_lessons = Lesson.objects.filter(module__course=enrollment.course).count()
+                total_quizzes = Quiz.objects.filter(module__course=enrollment.course).count()
+                passed_quizzes = QuizProgress.objects.filter(enrollment=enrollment, passed=True, quiz__module__course=enrollment.course).count()
+
+                completion_ratio = 0.0
+                if total_lessons + total_quizzes > 0:
+                    completion_ratio = ((completed_lessons + passed_quizzes) / (total_lessons + total_quizzes)) * 100
+                enrollment.progress_percentage = completion_ratio
+
+                if completion_ratio >= 100.0 and not enrollment.is_completed:
+                    enrollment.is_completed = True
+                    enrollment.completed_at = timezone.now()
+                    host = request.get_host()
+                    proto = 'https' if request.is_secure() else 'http'
+                    enrollment.certificate_url = f"{proto}://{host}/api/enrollments/{enrollment.id}/certificate/"
+                    Notification.objects.create(
+                        user=enrollment.student,
+                        title="Course Completed!",
+                        message=f"Congratulations! You completed '{enrollment.course.title}'. Download your certificate.",
+                        notification_type=Notification.Types.ENROLLMENT
+                    )
+                    scholar_badge = Badge.objects.filter(name="Scholar").first()
+                    if scholar_badge:
+                        UserBadge.objects.get_or_create(user=enrollment.student, badge=scholar_badge)
+
+                enrollment.save()
 
         return Response({
             'passed': passed,

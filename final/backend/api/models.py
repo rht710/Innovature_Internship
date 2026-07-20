@@ -154,6 +154,20 @@ class LessonProgress(models.Model):
     def __str__(self):
         return f"{self.enrollment.student.username} - {self.lesson.title} - Completed: {self.is_completed}"
 
+class QuizProgress(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='quiz_progresses')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='quiz_progresses')
+    passed = models.BooleanField(default=False)
+    score = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('enrollment', 'quiz')
+
+    def __str__(self):
+        return f"{self.enrollment.student.username} - {self.quiz.title} - Passed: {self.passed}"
+
 class QAMessage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='qa_messages')
