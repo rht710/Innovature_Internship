@@ -293,7 +293,7 @@ const LearningWorkspace = () => {
             </button>
           </div>
         ) : currentQuiz ? (
-          <div>
+          <div className="quiz-workspace">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0 }}>Quiz: {currentQuiz.title}</h2>
               <button 

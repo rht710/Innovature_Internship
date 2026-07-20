@@ -366,6 +366,20 @@ a {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-color);
+  min-height: 0;
+}
+
+.learning-rightbar > div {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.quiz-workspace {
+  min-height: 0;
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
+  padding-right: 8px;
 }
 
 @media (max-width: 1200px) {
