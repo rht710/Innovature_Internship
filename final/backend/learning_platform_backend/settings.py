@@ -132,9 +132,16 @@ REST_FRAMEWORK = {
 
 # CORS settings
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if os.getenv('CORS_ALLOWED_ORIGINS') else []
+DEFAULT_CORS_ORIGINS = ['http://localhost:5173', 'http://127.0.0.1:5173']
+CORS_ALLOWED_ORIGINS = [
+    *([origin for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if origin.strip()] if os.getenv('CORS_ALLOWED_ORIGINS') else []),
+    *DEFAULT_CORS_ORIGINS,
+]
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if os.getenv('CSRF_TRUSTED_ORIGINS') else []
+CSRF_TRUSTED_ORIGINS = [
+    *([origin for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()] if os.getenv('CSRF_TRUSTED_ORIGINS') else []),
+    *DEFAULT_CORS_ORIGINS,
+]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'

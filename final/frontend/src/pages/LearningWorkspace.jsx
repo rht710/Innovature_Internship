@@ -2,10 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import QAWorkspace from '../components/QAWorkspace';
-import CodeSandbox from '../components/CodeSandbox';
-import AICopilot from '../components/AICopilot';
 import ProjectGrader from '../components/ProjectGrader';
 import DirectMentorChat from '../components/DirectMentorChat';
+import AICopilot from '../components/AICopilot';
 import { BookOpen, CheckCircle, Play, FileText, Check, Award, ShieldAlert, Sparkles, Terminal } from 'lucide-react';
 
 const LearningWorkspace = () => {
@@ -19,7 +18,7 @@ const LearningWorkspace = () => {
   const [quizResult, setQuizResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [generatingQuiz, setGeneratingQuiz] = useState(false);
-  const [activeTab, setActiveTab] = useState('chat'); // chat, mentor, copilot, sandbox, materials
+  const [activeTab, setActiveTab] = useState('chat'); // chat, mentor, copilot, materials
 
   const token = localStorage.getItem('access_token');
 
@@ -117,10 +116,9 @@ const LearningWorkspace = () => {
   if (!course) return <p style={{ textAlign: 'center', marginTop: '60px' }}>Course not found.</p>;
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 80px)', margin: '0 -5vw' }}>
-      
+    <div className="learning-workspace">
       {/* 1. Left Sidebar: Curriculum structure */}
-      <div style={{ width: '320px', borderRight: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', overflowY: 'auto', padding: '20px' }}>
+      <div className="learning-sidebar">
         <h3 style={{ marginBottom: '8px' }}>Syllabus</h3>
         
         {enrollment && (
@@ -218,7 +216,7 @@ const LearningWorkspace = () => {
       </div>
 
       {/* 2. Middle Section: Media Player / Quiz Workspace */}
-      <div style={{ flex: 1, padding: '40px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <div className="learning-main">
         {currentLesson ? (
           <div>
             <h2 style={{ marginBottom: '12px' }}>{currentLesson.title}</h2>
@@ -367,8 +365,8 @@ const LearningWorkspace = () => {
       </div>
 
       {/* 3. Right Sidebar: Q&A / Study Material toggle */}
-      <div style={{ width: '360px', borderLeft: '1px solid var(--border-color)', backgroundColor: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-title)', fontSize: '0.8rem' }}>
+      <div className="learning-rightbar">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', borderBottom: '1px solid var(--border-color)', fontFamily: 'var(--font-title)', fontSize: '0.8rem' }}>
           <button
             onClick={() => setActiveTab('mentor')}
             style={{
@@ -408,20 +406,6 @@ const LearningWorkspace = () => {
             AI Co-Pilot
           </button>
           <button 
-            onClick={() => setActiveTab('sandbox')} 
-            style={{ 
-              padding: '12px 8px', 
-              background: 'none', 
-              border: 'none', 
-              color: activeTab === 'sandbox' ? 'var(--accent-primary)' : 'var(--text-secondary)', 
-              borderBottom: activeTab === 'sandbox' ? '2px solid var(--accent-primary)' : 'none',
-              fontWeight: '600',
-              cursor: 'pointer' 
-            }}
-          >
-            Playground
-          </button>
-          <button 
             onClick={() => setActiveTab('materials')} 
             style={{ 
               padding: '12px 8px', 
@@ -446,11 +430,6 @@ const LearningWorkspace = () => {
           )}
           {activeTab === 'copilot' && (
             <AICopilot course={course} currentLesson={currentLesson} />
-          )}
-          {activeTab === 'sandbox' && (
-            <div style={{ padding: '16px', height: '100%' }}>
-              <CodeSandbox course={course} />
-            </div>
           )}
           {activeTab === 'materials' && (
             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>

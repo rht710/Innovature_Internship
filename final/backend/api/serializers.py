@@ -1,5 +1,7 @@
 import os
+import re
 
+from django.utils.http import urlencode
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import (
@@ -131,97 +133,45 @@ class CourseSerializer(serializers.ModelSerializer):
     def get_enrollment_count(self, obj):
         return obj.enrollments.count()
 
+    def _topic_keywords(self, obj):
+        title_keywords = re.findall(r"[A-Za-z0-9]+", obj.title.lower())
+        module_terms = []
+        for module in obj.modules.all():
+            module_terms.extend(re.findall(r"[A-Za-z0-9]+", module.title.lower()))
+            for lesson in module.lessons.all():
+                module_terms.extend(re.findall(r"[A-Za-z0-9]+", lesson.title.lower()))
+                if lesson.description:
+                    module_terms.extend(re.findall(r"[A-Za-z0-9]+", lesson.description.lower()))
+        all_terms = [term for term in title_keywords + module_terms if len(term) > 3]
+        return list(dict.fromkeys(all_terms))[:6]
+
+    def _format_search_query(self, terms):
+        return " ".join(terms[:5])
+
+    def _build_search_resource(self, query, label):
+        return {
+            "type": "YOUTUBE",
+            "title": f"Search YouTube: {label}",
+            "url": f"https://www.youtube.com/results?{urlencode({'search_query': query})}",
+            "description": f"Find videos relevant to {label}."
+        }
+
     def get_suggested_materials(self, obj):
-        title_lower = obj.title.lower()
-        
-        # 1. Web Development suggestions
-        if "web" in title_lower or "html" in title_lower or "css" in title_lower:
-            return [
-                {
-                    "type": "YOUTUBE",
-                    "title": "HTML & CSS Full Course for Beginners (6 Hours)",
-                    "url": "https://www.youtube.com/watch?v=mU6anWqZJzY",
-                    "description": "Comprehensive HTML/CSS course by freeCodeCamp to master layouts."
-                },
-                {
-                    "type": "YOUTUBE",
-                    "title": "Learn CSS Flexbox in 20 Minutes",
-                    "url": "https://www.youtube.com/watch?v=fYq5PXgSsbE",
-                    "description": "Visual, quick breakdown of Flexbox alignment by Web Dev Simplified."
-                },
-                {
-                    "type": "DOCUMENT",
-                    "title": "MDN Web Docs: HTML & CSS guide",
-                    "url": "https://developer.mozilla.org/en-US/docs/Web",
-                    "description": "The absolute standard documentation for web developers."
-                },
-                {
-                    "type": "DOCUMENT",
-                    "title": "CSS-Tricks: Complete Guide to Flexbox",
-                    "url": "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
-                    "description": "The ultimate visual reference cheat sheet for flex properties."
-                }
-            ]
-            
-        # 2. Python suggestions
-        elif "python" in title_lower:
-            return [
-                {
-                    "type": "YOUTUBE",
-                    "title": "Python for Beginners - Full Course (6 Hours)",
-                    "url": "https://www.youtube.com/watch?v=_uQrJ0TkZlc",
-                    "description": "Popular starter tutorial by Programming with Mosh."
-                },
-                {
-                    "type": "YOUTUBE",
-                    "title": "Python OOP Tutorials - Instantiating & Inheritance",
-                    "url": "https://www.youtube.com/watch?v=ZDa-Z5JzLYM",
-                    "description": "Master OOP structures with Corey Schafer's legendary playlist."
-                },
-                {
-                    "type": "DOCUMENT",
-                    "title": "Official Python Documentation (3.x)",
-                    "url": "https://docs.python.org/3/",
-                    "description": "Standard documentation and standard library guides."
-                }
-            ]
-            
-        # 3. React suggestions
-        elif "react" in title_lower:
-            return [
-                {
-                    "type": "YOUTUBE",
-                    "title": "React JS Full Course for Beginners (12 Hours)",
-                    "url": "https://www.youtube.com/watch?v=bMknfKXIFA8",
-                    "description": "Step-by-step React framework crash course by freeCodeCamp."
-                },
-                {
-                    "type": "DOCUMENT",
-                    "title": "Official React Reference Docs",
-                    "url": "https://react.dev",
-                    "description": "Explore the official guidelines, custom hooks API, and rules of React."
-                }
-            ]
-            
-        # 4. Fallback/Dynamic suggestions for any custom created course
-        else:
-            from django.utils.http import urlencode
-            query_yt = urlencode({'search_query': f"learn {obj.title}"})
-            query_gg = urlencode({'q': f"{obj.title} documentation tutorial"})
-            return [
-                {
-                    "type": "YOUTUBE",
-                    "title": f"Search YouTube: Learn {obj.title}",
-                    "url": f"https://www.youtube.com/results?{query_yt}",
-                    "description": f"Find video tutorials and crash courses on {obj.title}."
-                },
-                {
-                    "type": "DOCUMENT",
-                    "title": f"Search Google: {obj.title} Docs",
-                    "url": f"https://www.google.com/search?{query_gg}",
-                    "description": f"Explore official guides, reference manuals, and API libraries."
-                }
-            ]
+        terms = self._topic_keywords(obj)
+        if not terms:
+            terms = re.findall(r"[A-Za-z0-9]+", obj.title.lower())[:5]
+
+        topic_string = self._format_search_query(terms)
+        youtube_search = self._build_search_resource(topic_string, obj.title)
+        practical_search = self._build_search_resource(f"{topic_string} project tutorial", f"{obj.title} projects")
+        docs_search = {
+            "type": "DOCUMENT",
+            "title": f"Search Google: {obj.title} docs",
+            "url": f"https://www.google.com/search?{urlencode({'q': f"{topic_string} documentation"})}",
+            "description": "Browse official guides, tutorials, and examples for this course topic."
+        }
+
+        return [youtube_search, practical_search, docs_search]
 
 class LessonProgressSerializer(serializers.ModelSerializer):
     class Meta:

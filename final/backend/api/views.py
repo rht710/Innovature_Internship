@@ -273,7 +273,12 @@ class IsAdminUser(permissions.BasePermission):
 
 class IsMentorUser(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user and request.user.is_authenticated and request.user.role == User.Roles.MENTOR
+        return (
+            request.user
+            and request.user.is_authenticated
+            and request.user.role == User.Roles.MENTOR
+            and request.user.is_approved_mentor
+        )
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

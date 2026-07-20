@@ -411,10 +411,10 @@ const CourseDetails = () => {
         )}
       </CourseDetailsModal>
 
-      <div style={{ display: 'flex', gap: '40px', position: 'relative' }}>
+      <div className="course-details-layout">
       
       {/* Course Main Details */}
-      <div style={{ flex: 1 }}>
+      <div className="course-details-main">
         <h1 style={{ fontSize: '2.5rem', marginBottom: '16px' }}>{course.title}</h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '32px' }}>
           {course.description}
@@ -467,7 +467,7 @@ const CourseDetails = () => {
       </div>
 
       {/* Pricing / Call-to-action Sidebar */}
-      <div className="premium-card" style={{ width: '360px', flexShrink: 0, height: 'fit-content' }}>
+      <div className="premium-card course-details-sidebar">
         <h3 style={{ marginBottom: '16px' }}>Course Enrollment</h3>
         <div style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '24px' }}>
           {course.price === '0.00' ? 'Free' : `₹${parseFloat(course.price).toLocaleString()}`}

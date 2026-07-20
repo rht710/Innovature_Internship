@@ -32,7 +32,14 @@ const Register = () => {
       }, 2000);
     } catch (err) {
       console.error(err);
-      setError('Registration failed. Username may already exist.');
+      if (err.response && err.response.data) {
+        const serverMessage = err.response.data.username || err.response.data.detail || err.response.data.error;
+        setError(serverMessage || 'Registration failed. Please check your input.');
+      } else if (err.request) {
+        setError('Registration failed: network or CORS issue. Confirm the backend is running and accessible from localhost:5173.');
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     }
   };
 
@@ -107,17 +114,22 @@ const Register = () => {
           </div>
 
           {role === 'MENTOR' && (
-            <div className="form-group">
-              <label className="form-label">Biography / Qualifications</label>
-              <textarea 
-                className="form-input" 
-                rows="3" 
-                value={bio} 
-                onChange={e => setBio(e.target.value)} 
-                placeholder="Tell students about yourself..."
-                style={{ resize: 'none' }}
-              />
-            </div>
+            <>
+              <div className="form-group">
+                <label className="form-label">Biography / Qualifications</label>
+                <textarea 
+                  className="form-input" 
+                  rows="3" 
+                  value={bio} 
+                  onChange={e => setBio(e.target.value)} 
+                  placeholder="Tell students about yourself..."
+                  style={{ resize: 'none' }}
+                />
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '-8px', marginBottom: '20px' }}>
+                Mentor accounts are reviewed by an admin and must be approved before mentor dashboard access is granted.
+              </p>
+            </>
           )}
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '12px' }}>

@@ -6,6 +6,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -13,6 +14,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setInfo('');
 
     try {
       // 1. Get JWT tokens
@@ -34,12 +36,18 @@ const Login = () => {
       localStorage.setItem('user_id', id);
       localStorage.setItem('user_role', role);
       localStorage.setItem('username', username);
+      localStorage.setItem('is_approved_mentor', is_approved_mentor);
 
       // 3. Redirect based on role
       if (role === 'ADMIN') {
         navigate('/admin');
       } else if (role === 'MENTOR') {
-        navigate('/mentor');
+        if (is_approved_mentor) {
+          navigate('/mentor');
+        } else {
+          setInfo('Mentor account is pending admin approval. You will be redirected to the home page.');
+          setTimeout(() => navigate('/'), 2500);
+        }
       } else {
         navigate('/');
       }
@@ -62,6 +70,12 @@ const Login = () => {
         {error && (
           <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--accent-danger)', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.85rem', textAlign: 'center', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
             {error}
+          </div>
+        )}
+
+        {info && (
+          <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--accent-success)', padding: '12px', borderRadius: '8px', marginBottom: '20px', fontSize: '0.85rem', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+            {info}
           </div>
         )}
 
