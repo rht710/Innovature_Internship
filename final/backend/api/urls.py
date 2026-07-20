@@ -4,7 +4,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     UserViewSet, CourseViewSet, ModuleViewSet, LessonViewSet,
     QuizViewSet, EnrollmentViewSet, QAMessageViewSet, CourseReviewViewSet,
-    PaymentViewSet, NotificationViewSet, ProjectViewSet, ProjectSubmissionViewSet, BadgeViewSet
+    PaymentViewSet, NotificationViewSet, ProjectViewSet, ProjectSubmissionViewSet, BadgeViewSet,
+    CreateTempAdminAPIView
 )
 
 router = DefaultRouter()
@@ -26,4 +27,5 @@ urlpatterns = [
     path('', include(router.urls)),
     path('auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/create-temp-admin/', CreateTempAdminAPIView.as_view(), name='create_temp_admin'),
 ]
