@@ -1,0 +1,1 @@
+This lesson document explains HTML forms, input types, buttons, and how to embed media in web pages.

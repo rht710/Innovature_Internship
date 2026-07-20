@@ -1,0 +1,1 @@
+This lesson document introduces Python syntax rules, comments, variable naming, and basic input/output operations.
