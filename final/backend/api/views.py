@@ -883,34 +883,34 @@ class QuizViewSet(viewsets.ModelViewSet):
                 }
             )
 
-            if passed:
-                completed_lessons = LessonProgress.objects.filter(enrollment=enrollment, is_completed=True).count()
-                total_lessons = Lesson.objects.filter(module__course=enrollment.course).count()
-                total_quizzes = Quiz.objects.filter(module__course=enrollment.course).count()
-                passed_quizzes = QuizProgress.objects.filter(enrollment=enrollment, passed=True, quiz__module__course=enrollment.course).count()
+            completed_lessons = LessonProgress.objects.filter(enrollment=enrollment, is_completed=True).count()
+            total_lessons = Lesson.objects.filter(module__course=enrollment.course).count()
+            total_quizzes = Quiz.objects.filter(module__course=enrollment.course).count()
+            passed_quizzes = QuizProgress.objects.filter(enrollment=enrollment, passed=True, quiz__module__course=enrollment.course).count()
 
-                completion_ratio = 0.0
-                if total_lessons + total_quizzes > 0:
-                    completion_ratio = ((completed_lessons + passed_quizzes) / (total_lessons + total_quizzes)) * 100
-                enrollment.progress_percentage = completion_ratio
+            completion_ratio = 0.0
+            if total_lessons + total_quizzes > 0:
+                completion_ratio = ((completed_lessons + passed_quizzes) / (total_lessons + total_quizzes)) * 100
+            enrollment.progress_percentage = completion_ratio
 
-                if completion_ratio >= 100.0 and not enrollment.is_completed:
-                    enrollment.is_completed = True
-                    enrollment.completed_at = timezone.now()
-                    host = request.get_host()
-                    proto = 'https' if request.is_secure() else 'http'
-                    enrollment.certificate_url = f"{proto}://{host}/api/enrollments/{enrollment.id}/certificate/"
-                    Notification.objects.create(
-                        user=enrollment.student,
-                        title="Course Completed!",
-                        message=f"Congratulations! You completed '{enrollment.course.title}'. Download your certificate.",
-                        notification_type=Notification.Types.ENROLLMENT
-                    )
-                    scholar_badge = Badge.objects.filter(name="Scholar").first()
-                    if scholar_badge:
-                        UserBadge.objects.get_or_create(user=enrollment.student, badge=scholar_badge)
+            can_complete_course = (total_lessons == completed_lessons) and (total_quizzes == passed_quizzes)
+            if can_complete_course and not enrollment.is_completed:
+                enrollment.is_completed = True
+                enrollment.completed_at = timezone.now()
+                host = request.get_host()
+                proto = 'https' if request.is_secure() else 'http'
+                enrollment.certificate_url = f"{proto}://{host}/api/enrollments/{enrollment.id}/certificate/"
+                Notification.objects.create(
+                    user=enrollment.student,
+                    title="Course Completed!",
+                    message=f"Congratulations! You completed '{enrollment.course.title}'. Download your certificate.",
+                    notification_type=Notification.Types.ENROLLMENT
+                )
+                scholar_badge = Badge.objects.filter(name="Scholar").first()
+                if scholar_badge:
+                    UserBadge.objects.get_or_create(user=enrollment.student, badge=scholar_badge)
 
-                enrollment.save()
+            enrollment.save()
 
         return Response({
             'passed': passed,
@@ -952,14 +952,49 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
             progress.is_completed = True
             progress.save()
 
-        # Recalculate enrollment progress
+        # Recalculate enrollment progress including quizzes
         total_lessons = Lesson.objects.filter(module__course=enrollment.course).count()
         completed_lessons = LessonProgress.objects.filter(enrollment=enrollment, is_completed=True).count()
+        total_quizzes = Quiz.objects.filter(module__course=enrollment.course).count()
+        passed_quizzes = QuizProgress.objects.filter(enrollment=enrollment, passed=True, quiz__module__course=enrollment.course).count()
         
-        if total_lessons > 0:
-            enrollment.progress_percentage = (completed_lessons / total_lessons) * 100
+        total_requirements = total_lessons + total_quizzes
+        completed_requirements = completed_lessons + passed_quizzes
+        
+        if total_requirements > 0:
+            enrollment.progress_percentage = (completed_requirements / total_requirements) * 100
         else:
             enrollment.progress_percentage = 100.0
+
+        can_complete_course = (total_lessons == completed_lessons) and (total_quizzes == passed_quizzes)
+        if can_complete_course and not enrollment.is_completed:
+            enrollment.is_completed = True
+            enrollment.completed_at = timezone.now()
+            host = request.get_host()
+            proto = 'https' if request.is_secure() else 'http'
+            enrollment.certificate_url = f"{proto}://{host}/api/enrollments/{enrollment.id}/certificate/"
+            Notification.objects.create(
+                user=enrollment.student,
+                title="Course Completed!",
+                message=f"Congratulations! You completed '{enrollment.course.title}'. Download your certificate.",
+                notification_type=Notification.Types.ENROLLMENT
+            )
+
+            scholar_badge = Badge.objects.filter(name="Scholar").first()
+            if scholar_badge:
+                UserBadge.objects.get_or_create(user=enrollment.student, badge=scholar_badge)
+
+            cat_badge_name = "Tech Explorer"
+            if enrollment.course.category == Course.Categories.BUSINESS:
+                cat_badge_name = "Business Leader"
+            elif enrollment.course.category == Course.Categories.CREATIVE:
+                cat_badge_name = "Creative Mind"
+            elif enrollment.course.category == Course.Categories.GENERAL:
+                cat_badge_name = "Knowledge Seeker"
+
+            cat_badge = Badge.objects.filter(name=cat_badge_name).first()
+            if cat_badge:
+                UserBadge.objects.get_or_create(user=enrollment.student, badge=cat_badge)
 
         if created:
             student = enrollment.student
@@ -1140,7 +1175,7 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         <body>
             <div class="certificate-container">
                 <div class="certificate-border">
-                    <div class="logo">Innovature Learning</div>
+                    <div class="logo">Lumina Learning</div>
                     <div class="title">Certificate of Completion</div>
                     <div class="subtitle">This is proudly presented to</div>
                     <div class="student-name">{student_name}</div>
@@ -1161,7 +1196,7 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
                             </svg>
                         </div>
                         <div class="signature-block">
-                            <div class="signature-text">Innovature Team</div>
+                            <div class="signature-text">Lumina Team</div>
                             Authorized Signature
                         </div>
                     </div>
