@@ -181,28 +181,20 @@ if redis_url:
     if parsed_url.scheme not in ('redis', 'rediss') or not parsed_url.hostname:
         raise ValueError(f"Invalid REDIS_URL: {redis_url}")
 
-    # For Upstash (rediss://), add SSL configuration
-    if parsed_url.scheme == 'rediss':
+    try:
         CHANNEL_LAYERS = {
             'default': {
                 'BACKEND': 'channels_redis.core.RedisChannelLayer',
                 'CONFIG': {
-                    "hosts": [redis_url],
-                    "connection_kwargs": {
-                        "ssl_certfile": None,
-                        "ssl_keyfile": None,
-                        "ssl_cert_reqs": "none",
-                    },
+                    'hosts': [redis_url],
                 },
             },
         }
-    else:
+    except Exception as e:
+        print(f"[CHANNELS WARNING] Could not initialize RedisChannelLayer: {e}")
         CHANNEL_LAYERS = {
             'default': {
-                'BACKEND': 'channels_redis.core.RedisChannelLayer',
-                'CONFIG': {
-                    "hosts": [redis_url],
-                },
+                'BACKEND': 'channels.layers.InMemoryChannelLayer',
             },
         }
 else:
