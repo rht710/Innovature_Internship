@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from urllib.parse import urlparse
 import dj_database_url
 from dotenv import load_dotenv
 load_dotenv()
@@ -174,15 +175,36 @@ SIMPLE_JWT = {
 }
 
 # Channels & Redis configuration
-if os.getenv('REDIS_URL'):
-    CHANNEL_LAYERS = {
-        'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
-            'CONFIG': {
-                "hosts": [os.getenv('REDIS_URL')],
+redis_url = os.getenv('REDIS_URL')
+if redis_url:
+    parsed_url = urlparse(redis_url)
+    if parsed_url.scheme not in ('redis', 'rediss') or not parsed_url.hostname:
+        raise ValueError(f"Invalid REDIS_URL: {redis_url}")
+
+    # For Upstash (rediss://), add SSL configuration
+    if parsed_url.scheme == 'rediss':
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    "hosts": [redis_url],
+                    "connection_kwargs": {
+                        "ssl_certfile": None,
+                        "ssl_keyfile": None,
+                        "ssl_cert_reqs": "none",
+                    },
+                },
             },
-        },
-    }
+        }
+    else:
+        CHANNEL_LAYERS = {
+            'default': {
+                'BACKEND': 'channels_redis.core.RedisChannelLayer',
+                'CONFIG': {
+                    "hosts": [redis_url],
+                },
+            },
+        }
 else:
     CHANNEL_LAYERS = {
         'default': {

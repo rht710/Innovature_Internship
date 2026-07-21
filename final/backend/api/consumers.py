@@ -13,18 +13,28 @@ class QAChatConsumer(AsyncJsonWebsocketConsumer):
         self.room_group_name = f'chat_{self.course_id}'
 
         # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
+        try:
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+        except Exception as e:
+            print(f"[Channels Warning] Failed to join group {self.room_group_name}: {e}")
+            await self.close(code=1011)
+            return
+
         await self.accept()
 
     async def disconnect(self, close_code):
         # Leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
+        if hasattr(self, 'room_group_name'):
+            try:
+                await self.channel_layer.group_discard(
+                    self.room_group_name,
+                    self.channel_name
+                )
+            except Exception:
+                pass
 
     # Receive message from WebSocket
     async def receive_json(self, content):
@@ -39,13 +49,16 @@ class QAChatConsumer(AsyncJsonWebsocketConsumer):
         qa_message = await self.save_message(user_id, self.course_id, message, parent_id)
         if qa_message:
             # Send message to room group
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': 'chat_message',
-                    'message': qa_message
-                }
-            )
+            try:
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'chat_message',
+                        'message': qa_message
+                    }
+                )
+            except Exception as e:
+                print(f"[Channels Warning] Failed to send chat message to group {self.room_group_name}: {e}")
 
     # Receive message from room group
     async def chat_message(self, event):
@@ -94,20 +107,29 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             self.user_id = user_id
             self.group_name = f'notifications_{self.user_id}'
 
-            await self.channel_layer.group_add(
-                self.group_name,
-                self.channel_name
-            )
+            try:
+                await self.channel_layer.group_add(
+                    self.group_name,
+                    self.channel_name
+                )
+            except Exception as e:
+                print(f"[Channels Warning] Failed to join notification group {self.group_name}: {e}")
+                await self.close(code=1011)
+                return
+
             await self.accept()
         else:
             await self.close()
 
     async def disconnect(self, close_code):
         if hasattr(self, 'group_name'):
-            await self.channel_layer.group_discard(
-                self.group_name,
-                self.channel_name
-            )
+            try:
+                await self.channel_layer.group_discard(
+                    self.group_name,
+                    self.channel_name
+                )
+            except Exception:
+                pass
 
     async def send_notification(self, event):
         notification = event['notification']
