@@ -43,9 +43,8 @@ const DirectMentorChat = ({ courseId, courseTitle, isMentor = false }) => {
   const loadGroupMessages = useCallback(async () => {
     setLoading(true);
     try {
-      const endpoint = isMentor
-        ? `/api/qa-messages/direct/?course=${courseId}&mark_read=true`
-        : `/api/qa-messages/?course=${courseId}&mark_read=true`;
+      // "All students" should load the public course Q&A messages (not private/direct threads).
+      const endpoint = `/api/qa-messages/?course=${courseId}&mark_read=true`;
       const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
