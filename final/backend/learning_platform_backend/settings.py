@@ -176,28 +176,25 @@ SIMPLE_JWT = {
 
 # Channels & Redis configuration
 redis_url = os.getenv('REDIS_URL')
-if redis_url:
+use_redis = os.getenv('USE_REDIS', 'False').lower() in {'1', 'true', 'yes', 'on'}
+
+if use_redis and redis_url:
     parsed_url = urlparse(redis_url)
     if parsed_url.scheme not in ('redis', 'rediss') or not parsed_url.hostname:
-        raise ValueError(f"Invalid REDIS_URL: {redis_url}")
+        print(f"[CHANNELS WARNING] Invalid REDIS_URL, falling back to in-memory channel layer: {redis_url}")
+        use_redis = False
 
-    try:
-        CHANNEL_LAYERS = {
-            'default': {
-                'BACKEND': 'channels_redis.core.RedisChannelLayer',
-                'CONFIG': {
-                    'hosts': [redis_url],
-                },
+if use_redis:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                'hosts': [redis_url],
             },
-        }
-    except Exception as e:
-        print(f"[CHANNELS WARNING] Could not initialize RedisChannelLayer: {e}")
-        CHANNEL_LAYERS = {
-            'default': {
-                'BACKEND': 'channels.layers.InMemoryChannelLayer',
-            },
-        }
+        },
+    }
 else:
+    print("[CHANNELS INFO] Using in-memory channel layer for WebSocket fallback")
     CHANNEL_LAYERS = {
         'default': {
             'BACKEND': 'channels.layers.InMemoryChannelLayer',
