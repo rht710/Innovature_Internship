@@ -12,16 +12,21 @@ const NotificationBell = () => {
   useEffect(() => {
     if (!token || !userId) return;
 
+    const apiUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.host}`;
+
     // Fetch existing notifications
-    axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/notifications/`, {
+    axios.get(`${apiUrl}/api/notifications/`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setNotifications(res.data.results || res.data))
     .catch(err => console.error(err));
 
     // Connect WebSocket
-    const wsUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/^http/, 'ws');
-    const ws = new WebSocket(`${wsUrl}/ws/notifications/?user_id=${userId}`);
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsHost = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/^https?/, protocol)
+      : `${protocol}://${window.location.host}`;
+    const ws = new WebSocket(`${wsHost}/ws/notifications/?user_id=${userId}`);
 
     ws.onmessage = (event) => {
       const newNotif = JSON.parse(event.data);

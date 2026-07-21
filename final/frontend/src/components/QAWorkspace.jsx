@@ -23,8 +23,12 @@ const QAWorkspace = ({ courseId }) => {
     .catch(err => console.error(err));
 
     // Connect to WebSocket room
-    const wsUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/^http/, 'ws');
-    ws.current = new WebSocket(`${wsUrl}/ws/chat/course/${courseId}/`);
+    const apiUrl = import.meta.env.VITE_API_URL || `${window.location.protocol}//${window.location.host}`;
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const wsHost = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace(/^https?/, protocol)
+      : `${protocol}://${window.location.host}`;
+    ws.current = new WebSocket(`${wsHost}/ws/chat/course/${courseId}/`);
 
     ws.current.onmessage = (event) => {
       const newMsg = JSON.parse(event.data);
