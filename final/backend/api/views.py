@@ -1246,7 +1246,8 @@ class QAMessageViewSet(viewsets.ModelViewSet):
         user = request.user
         is_mentor = course.mentor_id == user.id
         is_student = Enrollment.objects.filter(course=course, student=user).exists()
-        if not (is_mentor or is_student):
+        has_existing_messages = QAMessage.objects.filter(course=course).filter(Q(user=user) | Q(recipient=user)).exists()
+        if not (is_mentor or is_student or has_existing_messages):
             return Response({'detail': 'You do not have access to this course conversation.'}, status=status.HTTP_403_FORBIDDEN)
 
         student_id = request.query_params.get('student') or request.data.get('recipient')
