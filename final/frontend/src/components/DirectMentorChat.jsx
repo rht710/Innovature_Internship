@@ -43,18 +43,25 @@ const DirectMentorChat = ({ courseId, courseTitle, isMentor = false }) => {
   const loadGroupMessages = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`/api/qa-messages/?course=${courseId}&mark_read=true`, {
+      const endpoint = isMentor
+        ? `/api/qa-messages/direct/?course=${courseId}&mark_read=true`
+        : `/api/qa-messages/?course=${courseId}&mark_read=true`;
+      const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      const groupMessages = response.data.results || response.data;
-      setMessages(groupMessages);
-      setHasGroupUnread(groupMessages.some((message) => String(message.user) !== String(userId) && !message.is_read));
+      const conversationMessages = response.data.results || response.data;
+      setMessages(conversationMessages);
+      setHasGroupUnread(
+        Array.isArray(conversationMessages)
+          ? conversationMessages.some((message) => String(message.user) !== String(userId) && !message.is_read)
+          : false
+      );
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
-  }, [courseId, token, userId]);
+  }, [courseId, token, userId, isMentor]);
 
   const loadConversation = useCallback(async () => {
     setLoading(true);
@@ -110,7 +117,14 @@ const DirectMentorChat = ({ courseId, courseTitle, isMentor = false }) => {
 
   useEffect(() => {
     loadConversation();
-  }, [loadConversation]);
+    if (!courseId || !token) return;
+
+    const intervalId = window.setInterval(() => {
+      loadConversation();
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [loadConversation, courseId, token]);
 
   const selectedStudentName = selectedStudentId ? contacts.find((c) => c.id === selectedStudentId)?.name : '';
 
